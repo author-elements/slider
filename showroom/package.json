@@ -1,7 +1,7 @@
 {
-  "name": "author-__ELEMENT_NAME__-showroom",
+  "name": "author-slider-showroom",
   "version": "1.0.0",
-  "description": "Demo for author-__ELEMENT_NAME__ component",
+  "description": "Demo for author-slider component",
   "main": "index.js",
   "scripts": {
     "build": "node build.js --prod",
@@ -12,7 +12,7 @@
   "author": "Graham Butler",
   "license": "MIT",
   "devDependencies": {
-    "@chassis/core": "^2.3.3",
+    "@chassis/core": "^2.3.9",
     "productionline-web": "^1.1.8"
   },
   "dependencies": {
