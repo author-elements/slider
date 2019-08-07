@@ -1,6 +1,6 @@
 // Copyright (c) 2019 Author.io. MIT licensed.
 // @author.io/element-slider v1.0.2 available at github.com/author-elements/slider
-// Last Build: 8/6/2019, 5:29:25 PM
+// Last Build: 8/6/2019, 5:55:34 PM
 var AuthorSliderElement = (function () {
   'use strict';
 
@@ -101,9 +101,11 @@ var AuthorSliderElement = (function () {
     function AuthorSliderElement() {
       var _this;
 
+      var templateString = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+
       _classCallCheck(this, AuthorSliderElement);
 
-      _this = _possibleConstructorReturn(this, _getPrototypeOf(AuthorSliderElement).call(this, "<template><style>@charset \"UTF-8\"; :host{contain:content;display:flex}:host *,:host :after,:host :before{box-sizing:border-box}author-slider{contain:content;display:flex}author-slider *,author-slider :after,author-slider :before{box-sizing:border-box}</style><slot></slot></template>"));
+      _this = _possibleConstructorReturn(this, _getPrototypeOf(AuthorSliderElement).call(this, templateString || "<template><style>@charset \"UTF-8\"; :host{contain:content;display:flex}:host *,:host :after,:host :before{box-sizing:border-box}author-slider{contain:content;display:flex}author-slider *,author-slider :after,author-slider :before{box-sizing:border-box}</style><slot></slot></template>"));
 
       _this.UTIL.defineProperties({
         defaultAxis: {
@@ -186,23 +188,17 @@ var AuthorSliderElement = (function () {
         },
         generatePositionObject: function generatePositionObject() {
           var position = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _this.PRIVATE.position;
-          var dimensions = _this.PRIVATE.dimensions;
-
-          var getXPos = function getXPos() {
+          return _this.PRIVATE.generateCoordinates(function () {
             return {
               px: position.x,
-              pct: _this.UTIL.getPercentageDecimal(position.x, dimensions.width)
+              pct: _this.UTIL.getPercentageDecimal(position.x, _this.clientWidth)
             };
-          };
-
-          var getYPos = function getYPos() {
+          }, function () {
             return {
               px: position.y,
-              pct: _this.UTIL.getPercentageDecimal(position.y, dimensions.height)
+              pct: _this.UTIL.getPercentageDecimal(position.y, _this.clientHeight)
             };
-          };
-
-          return _this.PRIVATE.generateCoordinates(getXPos, getYPos);
+          });
         },
         getRelativePosition: function getRelativePosition(evt) {
           var _this$PRIVATE$dimensi = _this.PRIVATE.dimensions,
@@ -210,16 +206,11 @@ var AuthorSliderElement = (function () {
               left = _this$PRIVATE$dimensi.left,
               width = _this$PRIVATE$dimensi.width,
               height = _this$PRIVATE$dimensi.height;
-
-          var getXPos = function getXPos() {
+          return _this.PRIVATE.generateCoordinates(function () {
             return Math.min(Math.max(evt.pageX - left - pageXOffset, 0), width);
-          };
-
-          var getYPos = function getYPos() {
+          }, function () {
             return Math.min(Math.max(evt.pageY - top - pageYOffset, 0), height);
-          };
-
-          return _this.PRIVATE.generateCoordinates(getXPos, getYPos);
+          });
         },
         pointermoveHandler: function pointermoveHandler(evt) {
           if (evt.buttons < 1) {

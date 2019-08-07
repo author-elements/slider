@@ -1,6 +1,6 @@
 class AuthorSliderElement extends AuthorBaseElement(HTMLElement) {
-  constructor () {
-    super(`{{TEMPLATE-STRING}}`)
+  constructor (templateString = null) {
+    super(templateString || `{{TEMPLATE-STRING}}`)
 
     this.UTIL.defineProperties({
       defaultAxis: {
@@ -82,29 +82,22 @@ class AuthorSliderElement extends AuthorBaseElement(HTMLElement) {
         }
       },
 
-      generatePositionObject: (position = this.PRIVATE.position) => {
-        let { dimensions } = this.PRIVATE
-
-        let getXPos = () => ({
-          px: position.x,
-          pct: this.UTIL.getPercentageDecimal(position.x, dimensions.width)
-        })
-
-        let getYPos = () => ({
-          px: position.y,
-          pct: this.UTIL.getPercentageDecimal(position.y, dimensions.height)
-        })
-
-        return this.PRIVATE.generateCoordinates(getXPos, getYPos)
-      },
+      generatePositionObject: (position = this.PRIVATE.position) => this.PRIVATE.generateCoordinates(() => ({
+        px: position.x,
+        pct: this.UTIL.getPercentageDecimal(position.x, this.clientWidth)
+      }), () => ({
+        px: position.y,
+        pct: this.UTIL.getPercentageDecimal(position.y, this.clientHeight)
+      })),
 
       getRelativePosition: evt => {
         let { top, left, width, height } = this.PRIVATE.dimensions
 
-        let getXPos = () => Math.min(Math.max(evt.pageX - left - pageXOffset, 0), width)
-        let getYPos = () => Math.min(Math.max(evt.pageY - top - pageYOffset, 0), height)
-
-        return this.PRIVATE.generateCoordinates(getXPos, getYPos)
+        return this.PRIVATE.generateCoordinates(() => {
+          return Math.min(Math.max(evt.pageX - left - pageXOffset, 0), width)
+        }, () => {
+          return Math.min(Math.max(evt.pageY - top - pageYOffset, 0), height)
+        })
       },
 
       pointermoveHandler: evt => {

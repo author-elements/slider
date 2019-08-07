@@ -1,6 +1,6 @@
 {
   "name": "@author.io/element-slider",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "author-slider custom element (web component).",
   "main": "dist/author-slider.min.js",
   "scripts": {

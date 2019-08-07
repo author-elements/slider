@@ -1,6 +1,6 @@
 // Copyright (c) 2019 Author.io. MIT licensed.
 // @author.io/element-slider v1.0.2 available at github.com/author-elements/slider
-// Last Build: 8/6/2019, 5:29:25 PM
+// Last Build: 8/6/2019, 5:55:34 PM
 var AuthorSliderElement = (function () {
   'use strict';
 
@@ -16,8 +16,8 @@ var AuthorSliderElement = (function () {
             }
           })();
           class AuthorSliderElement extends AuthorBaseElement(HTMLElement) {
-    constructor () {
-      super(`<template><style>@charset "UTF-8"; :host{contain:content;display:flex}:host *,:host :after,:host :before{box-sizing:border-box}author-slider{contain:content;display:flex}author-slider *,author-slider :after,author-slider :before{box-sizing:border-box}</style><slot></slot></template>`);
+    constructor (templateString = null) {
+      super(templateString || `<template><style>@charset "UTF-8"; :host{contain:content;display:flex}:host *,:host :after,:host :before{box-sizing:border-box}author-slider{contain:content;display:flex}author-slider *,author-slider :after,author-slider :before{box-sizing:border-box}</style><slot></slot></template>`);
 
       this.UTIL.defineProperties({
         defaultAxis: {
@@ -99,29 +99,22 @@ var AuthorSliderElement = (function () {
           }
         },
 
-        generatePositionObject: (position = this.PRIVATE.position) => {
-          let { dimensions } = this.PRIVATE;
-
-          let getXPos = () => ({
-            px: position.x,
-            pct: this.UTIL.getPercentageDecimal(position.x, dimensions.width)
-          });
-
-          let getYPos = () => ({
-            px: position.y,
-            pct: this.UTIL.getPercentageDecimal(position.y, dimensions.height)
-          });
-
-          return this.PRIVATE.generateCoordinates(getXPos, getYPos)
-        },
+        generatePositionObject: (position = this.PRIVATE.position) => this.PRIVATE.generateCoordinates(() => ({
+          px: position.x,
+          pct: this.UTIL.getPercentageDecimal(position.x, this.clientWidth)
+        }), () => ({
+          px: position.y,
+          pct: this.UTIL.getPercentageDecimal(position.y, this.clientHeight)
+        })),
 
         getRelativePosition: evt => {
           let { top, left, width, height } = this.PRIVATE.dimensions;
 
-          let getXPos = () => Math.min(Math.max(evt.pageX - left - pageXOffset, 0), width);
-          let getYPos = () => Math.min(Math.max(evt.pageY - top - pageYOffset, 0), height);
-
-          return this.PRIVATE.generateCoordinates(getXPos, getYPos)
+          return this.PRIVATE.generateCoordinates(() => {
+            return Math.min(Math.max(evt.pageX - left - pageXOffset, 0), width)
+          }, () => {
+            return Math.min(Math.max(evt.pageY - top - pageYOffset, 0), height)
+          })
         },
 
         pointermoveHandler: evt => {
