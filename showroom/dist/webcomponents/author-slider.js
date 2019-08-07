@@ -1,6 +1,6 @@
 // Copyright (c) 2019 Author.io. MIT licensed.
-// @author.io/element-slider v1.0.4 available at github.com/author-elements/slider
-// Last Build: 8/6/2019, 6:18:16 PM
+// @author.io/element-slider v1.0.5 available at github.com/author-elements/slider
+// Last Build: 8/6/2019, 6:45:18 PM
 var AuthorSliderElement = (function () {
   'use strict';
 
@@ -110,9 +110,9 @@ var AuthorSliderElement = (function () {
           let { top, left, width, height } = this.PRIVATE.dimensions;
 
           return this.PRIVATE.generateCoordinates(() => {
-            return Math.min(Math.max(evt.pageX - left - pageXOffset, 0), width)
+            return Math.min(Math.max(evt.pageX - this.offsetLeft, 0), this.clientWidth)
           }, () => {
-            return Math.min(Math.max(evt.pageY - top - pageYOffset, 0), height)
+            return Math.min(Math.max(evt.pageY - this.offsetTop, 0), this.clientHeight)
           })
         },
 

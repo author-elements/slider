@@ -8,12 +8,6 @@ class AuthorSliderElement extends AuthorBaseElement(HTMLElement) {
         default: 'x'
       },
 
-      dimensions: {
-        private: true,
-        readonly: true,
-        get: () => this.getBoundingClientRect()
-      },
-
       handles: {
         private: true,
         readonly: true,
@@ -90,12 +84,10 @@ class AuthorSliderElement extends AuthorBaseElement(HTMLElement) {
       })),
 
       getRelativePosition: evt => {
-        let { top, left, width, height } = this.PRIVATE.dimensions
-
         return this.PRIVATE.generateCoordinates(() => {
-          return Math.min(Math.max(evt.pageX - left - pageXOffset, 0), width)
+          return Math.min(Math.max(evt.pageX - this.offsetLeft, 0), this.clientWidth)
         }, () => {
-          return Math.min(Math.max(evt.pageY - top - pageYOffset, 0), height)
+          return Math.min(Math.max(evt.pageY - this.offsetTop, 0), this.clientHeight)
         })
       },
 
