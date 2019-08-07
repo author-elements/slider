@@ -189,19 +189,19 @@ class AuthorSliderElement extends AuthorBaseElement(HTMLElement) {
         let { handles, position, pointermoveHandler } = this.PRIVATE
 
         if (handles.length > 1) {
-          reposition = false
-        } else if (handles.length !== 0) {
+          return
+        }
+
+        if (handles.length !== 0) {
           handles.item(0).position = this.position
         }
 
-        if (reposition) {
-          this.emit('change', {
-            previous: this.PRIVATE.generatePositionObject(previous),
-            position: this.position
-          })
+        this.emit('change', {
+          previous: this.PRIVATE.generatePositionObject(previous),
+          position: this.position
+        })
 
-          document.addEventListener('pointermove', this.PRIVATE.pointermoveHandler)
-        }
+        document.addEventListener('pointermove', this.PRIVATE.pointermoveHandler)
       }
     })
   }

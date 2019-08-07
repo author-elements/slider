@@ -1,6 +1,6 @@
 // Copyright (c) 2019 Author.io. MIT licensed.
-// @author.io/element-slider v1.0.0 available at github.com/author-elements/slider
-// Last Build: 8/6/2019, 5:16:54 PM
+// @author.io/element-slider v1.0.2 available at github.com/author-elements/slider
+// Last Build: 8/6/2019, 5:29:25 PM
 var AuthorSliderElement = (function () {
   'use strict';
 
@@ -306,7 +306,6 @@ var AuthorSliderElement = (function () {
         },
         pointerdown: function pointerdown(evt) {
           var previous = _this.PRIVATE.position;
-          var reposition = true;
           _this.PRIVATE.position = _this.PRIVATE.getRelativePosition(evt);
           var _this$PRIVATE3 = _this.PRIVATE,
               handles = _this$PRIVATE3.handles,
@@ -314,19 +313,19 @@ var AuthorSliderElement = (function () {
               pointermoveHandler = _this$PRIVATE3.pointermoveHandler;
 
           if (handles.length > 1) {
-            reposition = false;
-          } else if (handles.length !== 0) {
+            return;
+          }
+
+          if (handles.length !== 0) {
             handles.item(0).position = _this.position;
           }
 
-          if (reposition) {
-            _this.emit('change', {
-              previous: _this.PRIVATE.generatePositionObject(previous),
-              position: _this.position
-            });
+          _this.emit('change', {
+            previous: _this.PRIVATE.generatePositionObject(previous),
+            position: _this.position
+          });
 
-            document.addEventListener('pointermove', _this.PRIVATE.pointermoveHandler);
-          }
+          document.addEventListener('pointermove', _this.PRIVATE.pointermoveHandler);
         }
       });
 
