@@ -11,15 +11,15 @@ const Demo = new NGNX.VIEW.Registry({
     let { slider, handle } = this.ref
     window.slider = slider.element
 
-    slider.on('slide', evt => {
-      console.log(`SLIDE`)
-      console.log(`POSITION:`, evt.detail)
-    })
-
-    slider.on('change', evt => {
-      console.log(`CHANGE`)
-      console.log(`PREVIOUS:`, evt.detail.previous)
-      console.log('NEW:', evt.detail.position)
-    })
+    // slider.on('slide', evt => {
+    //   console.log(`SLIDE`)
+    //   console.log(`POSITION:`, evt.detail)
+    // })
+    //
+    // slider.on('change', evt => {
+    //   console.log(`CHANGE`)
+    //   console.log(`PREVIOUS:`, evt.detail.previous)
+    //   console.log('NEW:', evt.detail.position)
+    // })
   }
 })

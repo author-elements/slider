@@ -1,6 +1,6 @@
 // Copyright (c) 2019 Author.io. MIT licensed.
-// @author.io/element-slider v1.0.5 available at github.com/author-elements/slider
-// Last Build: 8/6/2019, 6:45:18 PM
+// @author.io/element-slider v1.0.6 available at github.com/author-elements/slider
+// Last Build: 8/6/2019, 9:00:33 PM
 var AuthorSliderElement = (function () {
   'use strict';
 
@@ -112,13 +112,6 @@ var AuthorSliderElement = (function () {
           private: true,
           default: 'x'
         },
-        dimensions: {
-          private: true,
-          readonly: true,
-          get: function get() {
-            return _this.getBoundingClientRect();
-          }
-        },
         handles: {
           private: true,
           readonly: true,
@@ -200,15 +193,12 @@ var AuthorSliderElement = (function () {
           });
         },
         getRelativePosition: function getRelativePosition(evt) {
-          var _this$PRIVATE$dimensi = _this.PRIVATE.dimensions,
-              top = _this$PRIVATE$dimensi.top,
-              left = _this$PRIVATE$dimensi.left,
-              width = _this$PRIVATE$dimensi.width,
-              height = _this$PRIVATE$dimensi.height;
+          var dims = _this.getBoundingClientRect();
+
           return _this.PRIVATE.generateCoordinates(function () {
-            return Math.min(Math.max(evt.pageX - _this.offsetLeft, 0), _this.clientWidth);
+            return Math.min(Math.max(evt.pageX - dims.left - window.scrollX, 0), _this.clientWidth);
           }, function () {
-            return Math.min(Math.max(evt.pageY - _this.offsetTop, 0), _this.clientHeight);
+            return Math.min(Math.max(evt.pageY - dims.top - window.scrollY, 0), _this.clientHeight);
           });
         },
         pointerdownHandler: function pointerdownHandler(evt) {

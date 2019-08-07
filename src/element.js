@@ -84,10 +84,12 @@ class AuthorSliderElement extends AuthorBaseElement(HTMLElement) {
       })),
 
       getRelativePosition: evt => {
+        let dims = this.getBoundingClientRect()
+
         return this.PRIVATE.generateCoordinates(() => {
-          return Math.min(Math.max(evt.pageX - this.offsetLeft, 0), this.clientWidth)
+          return Math.min(Math.max(evt.pageX - dims.left - window.scrollX, 0), this.clientWidth)
         }, () => {
-          return Math.min(Math.max(evt.pageY - this.offsetTop, 0), this.clientHeight)
+          return Math.min(Math.max(evt.pageY - dims.top - window.scrollY, 0), this.clientHeight)
         })
       },
 
