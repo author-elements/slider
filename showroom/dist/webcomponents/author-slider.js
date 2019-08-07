@@ -1,6 +1,6 @@
 // Copyright (c) 2019 Author.io. MIT licensed.
-// @author.io/element-slider v1.0.2 available at github.com/author-elements/slider
-// Last Build: 8/6/2019, 5:55:34 PM
+// @author.io/element-slider v1.0.4 available at github.com/author-elements/slider
+// Last Build: 8/6/2019, 6:08:37 PM
 var AuthorSliderElement = (function () {
   'use strict';
 
@@ -22,7 +22,6 @@ var AuthorSliderElement = (function () {
       this.UTIL.defineProperties({
         defaultAxis: {
           private: true,
-          readonly: true,
           default: 'x'
         },
 

@@ -5,7 +5,6 @@ class AuthorSliderElement extends AuthorBaseElement(HTMLElement) {
     this.UTIL.defineProperties({
       defaultAxis: {
         private: true,
-        readonly: true,
         default: 'x'
       },
 
