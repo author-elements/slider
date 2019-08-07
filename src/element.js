@@ -99,6 +99,29 @@ class AuthorSliderElement extends AuthorBaseElement(HTMLElement) {
         })
       },
 
+      pointerdownHandler: evt => {
+        let previous = this.PRIVATE.position
+        let reposition = true
+        this.PRIVATE.position = this.PRIVATE.getRelativePosition(evt)
+
+        let { handles, position, pointermoveHandler } = this.PRIVATE
+
+        if (handles.length > 1) {
+          return
+        }
+
+        if (handles.length !== 0) {
+          handles.item(0).position = this.position
+        }
+
+        this.emit('change', {
+          previous: this.PRIVATE.generatePositionObject(previous),
+          position: this.position
+        })
+
+        document.addEventListener('pointermove', this.PRIVATE.pointermoveHandler)
+      },
+
       pointermoveHandler: evt => {
         if (evt.buttons < 1) {
           return
@@ -144,7 +167,7 @@ class AuthorSliderElement extends AuthorBaseElement(HTMLElement) {
 
         document.removeEventListener('pointermove', pointermoveHandler)
         document.removeEventListener('pointerup', pointerupHandler)
-      },
+      }
     })
 
     this.UTIL.registerListeners(this, {
@@ -173,28 +196,7 @@ class AuthorSliderElement extends AuthorBaseElement(HTMLElement) {
         }
       },
 
-      pointerdown: evt => {
-        let previous = this.PRIVATE.position
-        let reposition = true
-        this.PRIVATE.position = this.PRIVATE.getRelativePosition(evt)
-
-        let { handles, position, pointermoveHandler } = this.PRIVATE
-
-        if (handles.length > 1) {
-          return
-        }
-
-        if (handles.length !== 0) {
-          handles.item(0).position = this.position
-        }
-
-        this.emit('change', {
-          previous: this.PRIVATE.generatePositionObject(previous),
-          position: this.position
-        })
-
-        document.addEventListener('pointermove', this.PRIVATE.pointermoveHandler)
-      }
+      pointerdown: this.PRIVATE.pointerdownHandler
     })
   }
 

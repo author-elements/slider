@@ -1,6 +1,6 @@
 // Copyright (c) 2019 Author.io. MIT licensed.
 // @author.io/element-slider v1.0.4 available at github.com/author-elements/slider
-// Last Build: 8/6/2019, 6:08:37 PM
+// Last Build: 8/6/2019, 6:18:16 PM
 var AuthorSliderElement = (function () {
   'use strict';
 
@@ -211,6 +211,29 @@ var AuthorSliderElement = (function () {
             return Math.min(Math.max(evt.pageY - top - pageYOffset, 0), height);
           });
         },
+        pointerdownHandler: function pointerdownHandler(evt) {
+          var previous = _this.PRIVATE.position;
+          _this.PRIVATE.position = _this.PRIVATE.getRelativePosition(evt);
+          var _this$PRIVATE = _this.PRIVATE,
+              handles = _this$PRIVATE.handles,
+              position = _this$PRIVATE.position,
+              pointermoveHandler = _this$PRIVATE.pointermoveHandler;
+
+          if (handles.length > 1) {
+            return;
+          }
+
+          if (handles.length !== 0) {
+            handles.item(0).position = _this.position;
+          }
+
+          _this.emit('change', {
+            previous: _this.PRIVATE.generatePositionObject(previous),
+            position: _this.position
+          });
+
+          document.addEventListener('pointermove', _this.PRIVATE.pointermoveHandler);
+        },
         pointermoveHandler: function pointermoveHandler(evt) {
           if (evt.buttons < 1) {
             return;
@@ -234,11 +257,11 @@ var AuthorSliderElement = (function () {
           }
         },
         pointerupHandler: function pointerupHandler(evt) {
-          var _this$PRIVATE = _this.PRIVATE,
-              currentPosition = _this$PRIVATE.currentPosition,
-              handles = _this$PRIVATE.handles,
-              pointermoveHandler = _this$PRIVATE.pointermoveHandler,
-              pointerupHandler = _this$PRIVATE.pointerupHandler;
+          var _this$PRIVATE2 = _this.PRIVATE,
+              currentPosition = _this$PRIVATE2.currentPosition,
+              handles = _this$PRIVATE2.handles,
+              pointermoveHandler = _this$PRIVATE2.pointermoveHandler,
+              pointerupHandler = _this$PRIVATE2.pointerupHandler;
           var reposition = true;
           _this.PRIVATE.position = currentPosition;
 
@@ -273,9 +296,9 @@ var AuthorSliderElement = (function () {
             return;
           }
 
-          var _this$PRIVATE2 = _this.PRIVATE,
-              defaultAxis = _this$PRIVATE2.defaultAxis,
-              validAxisValues = _this$PRIVATE2.validAxisValues;
+          var _this$PRIVATE3 = _this.PRIVATE,
+              defaultAxis = _this$PRIVATE3.defaultAxis,
+              validAxisValues = _this$PRIVATE3.validAxisValues;
 
           switch (attribute) {
             case 'axis':
@@ -294,29 +317,7 @@ var AuthorSliderElement = (function () {
               break;
           }
         },
-        pointerdown: function pointerdown(evt) {
-          var previous = _this.PRIVATE.position;
-          _this.PRIVATE.position = _this.PRIVATE.getRelativePosition(evt);
-          var _this$PRIVATE3 = _this.PRIVATE,
-              handles = _this$PRIVATE3.handles,
-              position = _this$PRIVATE3.position,
-              pointermoveHandler = _this$PRIVATE3.pointermoveHandler;
-
-          if (handles.length > 1) {
-            return;
-          }
-
-          if (handles.length !== 0) {
-            handles.item(0).position = _this.position;
-          }
-
-          _this.emit('change', {
-            previous: _this.PRIVATE.generatePositionObject(previous),
-            position: _this.position
-          });
-
-          document.addEventListener('pointermove', _this.PRIVATE.pointermoveHandler);
-        }
+        pointerdown: _this.PRIVATE.pointerdownHandler
       });
 
       return _this;

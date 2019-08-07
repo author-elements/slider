@@ -1,6 +1,6 @@
 // Copyright (c) 2019 Author.io. MIT licensed.
 // @author.io/element-slider v1.0.4 available at github.com/author-elements/slider
-// Last Build: 8/6/2019, 6:08:37 PM
+// Last Build: 8/6/2019, 6:18:16 PM
 var AuthorSliderElement = (function () {
   'use strict';
 
@@ -116,6 +116,28 @@ var AuthorSliderElement = (function () {
           })
         },
 
+        pointerdownHandler: evt => {
+          let previous = this.PRIVATE.position;
+          this.PRIVATE.position = this.PRIVATE.getRelativePosition(evt);
+
+          let { handles, position, pointermoveHandler } = this.PRIVATE;
+
+          if (handles.length > 1) {
+            return
+          }
+
+          if (handles.length !== 0) {
+            handles.item(0).position = this.position;
+          }
+
+          this.emit('change', {
+            previous: this.PRIVATE.generatePositionObject(previous),
+            position: this.position
+          });
+
+          document.addEventListener('pointermove', this.PRIVATE.pointermoveHandler);
+        },
+
         pointermoveHandler: evt => {
           if (evt.buttons < 1) {
             return
@@ -161,7 +183,7 @@ var AuthorSliderElement = (function () {
 
           document.removeEventListener('pointermove', pointermoveHandler);
           document.removeEventListener('pointerup', pointerupHandler);
-        },
+        }
       });
 
       this.UTIL.registerListeners(this, {
@@ -190,27 +212,7 @@ var AuthorSliderElement = (function () {
           }
         },
 
-        pointerdown: evt => {
-          let previous = this.PRIVATE.position;
-          this.PRIVATE.position = this.PRIVATE.getRelativePosition(evt);
-
-          let { handles, position, pointermoveHandler } = this.PRIVATE;
-
-          if (handles.length > 1) {
-            return
-          }
-
-          if (handles.length !== 0) {
-            handles.item(0).position = this.position;
-          }
-
-          this.emit('change', {
-            previous: this.PRIVATE.generatePositionObject(previous),
-            position: this.position
-          });
-
-          document.addEventListener('pointermove', this.PRIVATE.pointermoveHandler);
-        }
+        pointerdown: this.PRIVATE.pointerdownHandler
       });
     }
 
