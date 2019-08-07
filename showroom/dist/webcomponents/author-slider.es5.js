@@ -1,6 +1,6 @@
 // Copyright (c) 2019 Author.io. MIT licensed.
 // @author.io/element-slider v1.0.0 available at github.com/author-elements/slider
-// Last Build: 8/6/2019, 3:11:12 PM
+// Last Build: 8/6/2019, 5:16:54 PM
 var AuthorSliderElement = (function () {
   'use strict';
 
@@ -118,6 +118,13 @@ var AuthorSliderElement = (function () {
             return _this.getBoundingClientRect();
           }
         },
+        handles: {
+          private: true,
+          readonly: true,
+          get: function get() {
+            return _this.querySelectorAll('author-slider-handle');
+          }
+        },
         validAxisValues: {
           private: true,
           readonly: true,
@@ -151,19 +158,51 @@ var AuthorSliderElement = (function () {
       });
 
       _this.UTIL.definePrivateMethods({
+        generateCoordinates: function generateCoordinates(getX, getY) {
+          switch (_this.axis) {
+            case '*':
+              return {
+                x: getX(),
+                y: getY()
+              };
+
+            case 'x':
+              return {
+                x: getX(),
+                y: null
+              };
+
+            case 'y':
+              return {
+                x: null,
+                y: getY()
+              };
+
+            default:
+              return _this.UTIL.throwError({
+                message: !_this.axis ? 'No axis specified' : "Invalid axis \"".concat(_this.axis, "\"")
+              });
+          }
+        },
         generatePositionObject: function generatePositionObject() {
           var position = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _this.PRIVATE.position;
           var dimensions = _this.PRIVATE.dimensions;
-          return {
-            x: {
+
+          var getXPos = function getXPos() {
+            return {
               px: position.x,
               pct: _this.UTIL.getPercentageDecimal(position.x, dimensions.width)
-            },
-            y: {
+            };
+          };
+
+          var getYPos = function getYPos() {
+            return {
               px: position.y,
               pct: _this.UTIL.getPercentageDecimal(position.y, dimensions.height)
-            }
+            };
           };
+
+          return _this.PRIVATE.generateCoordinates(getXPos, getYPos);
         },
         getRelativePosition: function getRelativePosition(evt) {
           var _this$PRIVATE$dimensi = _this.PRIVATE.dimensions,
@@ -171,10 +210,16 @@ var AuthorSliderElement = (function () {
               left = _this$PRIVATE$dimensi.left,
               width = _this$PRIVATE$dimensi.width,
               height = _this$PRIVATE$dimensi.height;
-          return {
-            x: Math.min(Math.max(evt.pageX - left, 0), width),
-            y: Math.min(Math.max(evt.pageY - top, 0), height)
+
+          var getXPos = function getXPos() {
+            return Math.min(Math.max(evt.pageX - left - pageXOffset, 0), width);
           };
+
+          var getYPos = function getYPos() {
+            return Math.min(Math.max(evt.pageY - top - pageYOffset, 0), height);
+          };
+
+          return _this.PRIVATE.generateCoordinates(getXPos, getYPos);
         },
         pointermoveHandler: function pointermoveHandler(evt) {
           if (evt.buttons < 1) {
@@ -182,28 +227,46 @@ var AuthorSliderElement = (function () {
           }
 
           document.addEventListener('pointerup', _this.PRIVATE.pointerupHandler);
+          var handles = _this.PRIVATE.handles;
 
           var relative = _this.PRIVATE.getRelativePosition(evt);
 
-          if (relative.x !== _this.position.x.px || relative.y !== _this.position.y.px) {
+          if (!_this.position.x || relative.x !== _this.position.x.px || !_this.position.y || relative.y !== _this.position.y.px) {
             _this.PRIVATE.currentPosition = relative;
 
-            _this.emit('slide', _this.PRIVATE.generatePositionObject(_this.PRIVATE.currentPosition));
+            var position = _this.PRIVATE.generatePositionObject(_this.PRIVATE.currentPosition);
+
+            if (handles.length !== 0) {
+              handles.item(0).position = position;
+            }
+
+            _this.emit('slide', position);
           }
         },
         pointerupHandler: function pointerupHandler(evt) {
           var _this$PRIVATE = _this.PRIVATE,
               currentPosition = _this$PRIVATE.currentPosition,
+              handles = _this$PRIVATE.handles,
               pointermoveHandler = _this$PRIVATE.pointermoveHandler,
               pointerupHandler = _this$PRIVATE.pointerupHandler;
+          var reposition = true;
           _this.PRIVATE.position = currentPosition;
 
-          _this.emit('change', {
-            previous: _this.previousPosition,
-            position: _this.position
-          });
+          if (handles.length > 1) {
+            reposition = false;
+          } else if (handles.length !== 0) {
+            handles.item(0).position = _this.position;
+          }
 
-          _this.PRIVATE.previousPosition = currentPosition;
+          if (reposition) {
+            _this.emit('change', {
+              previous: _this.previousPosition,
+              position: _this.position
+            });
+
+            _this.PRIVATE.previousPosition = currentPosition;
+          }
+
           document.removeEventListener('pointermove', pointermoveHandler);
           document.removeEventListener('pointerup', pointerupHandler);
         }
@@ -243,17 +306,27 @@ var AuthorSliderElement = (function () {
         },
         pointerdown: function pointerdown(evt) {
           var previous = _this.PRIVATE.position;
+          var reposition = true;
           _this.PRIVATE.position = _this.PRIVATE.getRelativePosition(evt);
           var _this$PRIVATE3 = _this.PRIVATE,
+              handles = _this$PRIVATE3.handles,
               position = _this$PRIVATE3.position,
               pointermoveHandler = _this$PRIVATE3.pointermoveHandler;
 
-          _this.emit('change', {
-            previous: _this.PRIVATE.generatePositionObject(previous),
-            position: _this.position
-          });
+          if (handles.length > 1) {
+            reposition = false;
+          } else if (handles.length !== 0) {
+            handles.item(0).position = _this.position;
+          }
 
-          document.addEventListener('pointermove', _this.PRIVATE.pointermoveHandler);
+          if (reposition) {
+            _this.emit('change', {
+              previous: _this.PRIVATE.generatePositionObject(previous),
+              position: _this.position
+            });
+
+            document.addEventListener('pointermove', _this.PRIVATE.pointermoveHandler);
+          }
         }
       });
 

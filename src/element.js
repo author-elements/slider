@@ -15,6 +15,12 @@ class AuthorSliderElement extends AuthorBaseElement(HTMLElement) {
         get: () => this.getBoundingClientRect()
       },
 
+      handles: {
+        private: true,
+        readonly: true,
+        get: () => this.querySelectorAll('author-slider-handle')
+      },
+
       validAxisValues: {
         private: true,
         readonly: true,
@@ -51,29 +57,54 @@ class AuthorSliderElement extends AuthorBaseElement(HTMLElement) {
     })
 
     this.UTIL.definePrivateMethods({
+      generateCoordinates: (getX, getY) => {
+        switch (this.axis) {
+          case '*': return {
+            x: getX(),
+            y: getY()
+          }
+
+          case 'x': return {
+            x: getX(),
+            y: null
+          }
+
+          case 'y': return {
+            x: null,
+            y: getY()
+          }
+
+          default: return this.UTIL.throwError({
+            message: !this.axis
+              ? 'No axis specified'
+              : `Invalid axis "${this.axis}"`
+          })
+        }
+      },
+
       generatePositionObject: (position = this.PRIVATE.position) => {
         let { dimensions } = this.PRIVATE
 
-        return {
-          x: {
-            px: position.x,
-            pct: this.UTIL.getPercentageDecimal(position.x, dimensions.width)
-          },
+        let getXPos = () => ({
+          px: position.x,
+          pct: this.UTIL.getPercentageDecimal(position.x, dimensions.width)
+        })
 
-          y: {
-            px: position.y,
-            pct: this.UTIL.getPercentageDecimal(position.y, dimensions.height)
-          }
-        }
+        let getYPos = () => ({
+          px: position.y,
+          pct: this.UTIL.getPercentageDecimal(position.y, dimensions.height)
+        })
+
+        return this.PRIVATE.generateCoordinates(getXPos, getYPos)
       },
 
       getRelativePosition: evt => {
         let { top, left, width, height } = this.PRIVATE.dimensions
 
-        return {
-          x: Math.min(Math.max(evt.pageX - left, 0), width),
-          y: Math.min(Math.max(evt.pageY - top, 0), height)
-        }
+        let getXPos = () => Math.min(Math.max(evt.pageX - left - pageXOffset, 0), width)
+        let getYPos = () => Math.min(Math.max(evt.pageY - top - pageYOffset, 0), height)
+
+        return this.PRIVATE.generateCoordinates(getXPos, getYPos)
       },
 
       pointermoveHandler: evt => {
@@ -83,25 +114,41 @@ class AuthorSliderElement extends AuthorBaseElement(HTMLElement) {
 
         document.addEventListener('pointerup', this.PRIVATE.pointerupHandler)
 
+        let { handles } = this.PRIVATE
         let relative = this.PRIVATE.getRelativePosition(evt)
 
-        if (relative.x !== this.position.x.px || relative.y !== this.position.y.px) {
+        if ((!this.position.x || relative.x !== this.position.x.px) || (!this.position.y || relative.y !== this.position.y.px)) {
           this.PRIVATE.currentPosition = relative
-          this.emit('slide', this.PRIVATE.generatePositionObject(this.PRIVATE.currentPosition))
+          let position = this.PRIVATE.generatePositionObject(this.PRIVATE.currentPosition)
+
+          if (handles.length !== 0) {
+            handles.item(0).position = position
+          }
+
+          this.emit('slide', position)
         }
       },
 
       pointerupHandler: evt => {
-        let { currentPosition, pointermoveHandler, pointerupHandler } = this.PRIVATE
+        let { currentPosition, handles, pointermoveHandler, pointerupHandler } = this.PRIVATE
+        let reposition = true
 
         this.PRIVATE.position = currentPosition
 
-        this.emit('change', {
-          previous: this.previousPosition,
-          position: this.position
-        })
+        if (handles.length > 1) {
+          reposition = false
+        } else if (handles.length !== 0) {
+          handles.item(0).position = this.position
+        }
 
-        this.PRIVATE.previousPosition = currentPosition
+        if (reposition) {
+          this.emit('change', {
+            previous: this.previousPosition,
+            position: this.position
+          })
+
+          this.PRIVATE.previousPosition = currentPosition
+        }
 
         document.removeEventListener('pointermove', pointermoveHandler)
         document.removeEventListener('pointerup', pointerupHandler)
@@ -136,16 +183,25 @@ class AuthorSliderElement extends AuthorBaseElement(HTMLElement) {
 
       pointerdown: evt => {
         let previous = this.PRIVATE.position
+        let reposition = true
         this.PRIVATE.position = this.PRIVATE.getRelativePosition(evt)
 
-        let { position, pointermoveHandler } = this.PRIVATE
+        let { handles, position, pointermoveHandler } = this.PRIVATE
 
-        this.emit('change', {
-          previous: this.PRIVATE.generatePositionObject(previous),
-          position: this.position
-        })
+        if (handles.length > 1) {
+          reposition = false
+        } else if (handles.length !== 0) {
+          handles.item(0).position = this.position
+        }
 
-        document.addEventListener('pointermove', this.PRIVATE.pointermoveHandler)
+        if (reposition) {
+          this.emit('change', {
+            previous: this.PRIVATE.generatePositionObject(previous),
+            position: this.position
+          })
+
+          document.addEventListener('pointermove', this.PRIVATE.pointermoveHandler)
+        }
       }
     })
   }

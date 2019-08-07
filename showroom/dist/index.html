@@ -22,6 +22,7 @@
     <script src="webcomponents/author-option.js"></script>
     <script src="webcomponents/author-select.js"></script>
     <script src="webcomponents/author-slider.js"></script>
+    <script src="webcomponents/author-slider-handle.js"></script>
   </head>
 
   <body class="author-slider demo" data-theme="default">
@@ -47,9 +48,21 @@
         </author-control>
       </div>
 
-      <div class="slider">
-        <author-slider>
-          <div class="target"></div>
+      <div class="horizontal slider">
+        <author-slider axis="x">
+          
+        </author-slider>
+      </div>
+
+      <div class="vertical slider">
+        <author-slider axis="y">
+          <author-slider-handle></author-slider-handle>
+        </author-slider>
+      </div>
+
+      <div class="omnidirectional slider">
+        <author-slider axis="*">
+          <author-slider-handle></author-slider-handle>
         </author-slider>
       </div>
     </main>

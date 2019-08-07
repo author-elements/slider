@@ -1,6 +1,6 @@
 // Copyright (c) 2019 Author.io. MIT licensed.
-// @author.io/element-option v1.0.1 available at github.com/author-elements/option
-// Last Build: 3/9/2019, 11:18:58 PM
+// @author.io/element-option v1.0.4 available at github.com/author-elements/option
+// Last Build: 3/27/2019, 6:23:33 AM
 var AuthorOptionElement = (function () {
   'use strict';
 
@@ -10,10 +10,11 @@ var AuthorOptionElement = (function () {
             }
           class AuthorOptionElement extends AuthorBaseElement(HTMLElement) {
     constructor () {
-      super(`<template><style>@charset "UTF-8"; :host{contain:content;display:flex;flex-direction:column;max-width:100%}:host *,:host :after,:host :before{box-sizing:border-box}author-option{contain:content;display:flex;flex-direction:column;max-width:100%}author-option *,author-option :after,author-option :before{box-sizing:border-box}</style><slot name="afterbegin"></slot><slot name="beforeoption"></slot><slot></slot><slot name="afteroption"></slot><slot name="beforeend"></slot></template>`);
+      super(`<template><style>@charset "UTF-8"; :host{contain:content;display:flex;flex-direction:column;max-width:100%}:host *,:host :after,:host :before{box-sizing:border-box}:host([hidden]){display:none!important}author-option{contain:content;display:flex;flex-direction:column;max-width:100%}author-option *,author-option :after,author-option :before{box-sizing:border-box}author-option[hidden]{display:none!important}</style><slot name="afterbegin"></slot><slot name="beforeoption"></slot><slot></slot><slot name="afteroption"></slot><slot name="beforeend"></slot></template>`);
 
       this.UTIL.defineAttributes({
         disabled: false,
+        hidden: false,
         hover: false,
         id: '',
         label: '',
@@ -53,8 +54,7 @@ var AuthorOptionElement = (function () {
             return
           }
 
-          let { shiftKey, metaKey, ctrlKey } = evt;
-          this.PRIVATE.select(true, metaKey, ctrlKey, mousedown);
+          this.PRIVATE.select(true, evt.metaKey, evt.ctrlKey, mousedown);
         },
 
         parentStateChangeHandler: evt => {
@@ -63,8 +63,6 @@ var AuthorOptionElement = (function () {
           switch (name) {
             case 'multiple':
               return this.PRIVATE.setMode(value ? 'select-multiple' : 'select-one')
-
-            default: return
           }
         },
 
@@ -72,15 +70,11 @@ var AuthorOptionElement = (function () {
           switch (mode) {
             case 'select-multiple':
               this.off('mouseup', this.PRIVATE.selectionHandler);
-              this.on('mousedown', this.PRIVATE.selectionHandler);
-              break
+              return this.on('mousedown', this.PRIVATE.selectionHandler)
 
             case 'select-one':
               this.on('mouseup', this.PRIVATE.selectionHandler);
-              this.off('mousedown', this.PRIVATE.selectionHandler);
-              break
-
-            default: return
+              return this.off('mousedown', this.PRIVATE.selectionHandler)
           }
         },
 
@@ -114,7 +108,7 @@ var AuthorOptionElement = (function () {
     }
 
     static get observedAttributes () {
-      return ['disabled', 'hover', 'label', 'selected', 'value']
+      return ['disabled', 'hidden', 'hover', 'label', 'selected', 'value']
     }
 
     get text () {

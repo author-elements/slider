@@ -1,6 +1,6 @@
 // Copyright (c) 2019 Author.io. MIT licensed.
-// @author.io/element-menu v1.0.1 available at github.com/author-elements/menu
-// Last Build: 3/27/2019, 3:31:21 AM
+// @author.io/element-menu v1.0.18 available at github.com/author-elements/menu
+// Last Build: 4/10/2019, 9:48:39 PM
 var AuthorMenuElement = (function () {
   'use strict';
 
@@ -138,8 +138,15 @@ var AuthorMenuElement = (function () {
       _this = _possibleConstructorReturn(this, _getPrototypeOf(AuthorMenuElement).call(this, templateString || "<template><style>@charset \"UTF-8\"; :host *,:host :after,:host :before{box-sizing:border-box}author-menu *,author-menu :after,author-menu :before{box-sizing:border-box}</style><slot></slot></template>"));
 
       _this.UTIL.defineProperties({
+        sourceForm: {
+          private: true,
+          default: null
+        },
         form: {
-          readonly: true
+          readonly: true,
+          get: function get() {
+            return _this.PRIVATE.sourceForm;
+          }
         },
         hoveredIndex: {
           readonly: true,
@@ -198,6 +205,7 @@ var AuthorMenuElement = (function () {
         placeholder: '',
         autofocus: false,
         disabled: false,
+        'force-open': false,
         open: false,
         required: false,
         size: {
@@ -233,6 +241,11 @@ var AuthorMenuElement = (function () {
           var startIndex = _this.hoveredIndex > -1 ? _this.hoveredIndex : _this.selectedIndex > -1 ? _this.selectedIndex : -1;
 
           switch (evt[_this.keySource]) {
+            case 27:
+            case 'Escape':
+              _this.open = false;
+              return;
+
             case 13:
             case 'Enter':
             case 32:
@@ -283,21 +296,20 @@ var AuthorMenuElement = (function () {
                 startIndex: startIndex
               }, _this.optionsElement);
 
-            default:
-              return;
+            case 9:
+            case 'Tab':
+              _this.open = false;
+              break;
           }
         },
         optionSelectionHandler: function optionSelectionHandler(evt) {
-          evt.stopPropagation();
-          var afterChange = _this.PRIVATE.middleware.afterChange;
+          evt.stopPropagation(); // let { afterChange } = this.PRIVATE.middleware
 
           _this.dispatchEvent(new Event('change', {}));
 
           if (_this.open) {
             _this.removeAttribute('open');
-          }
-
-          _this.emit('options.selected', evt.detail.options, _this.selectedOptionsElement); // if (this.checkValidity()) {
+          } // if (this.checkValidity()) {
           //   this.removeAttribute('invalid')
           // } else {
           //   this.setAttribute('invalid', '')
@@ -317,22 +329,28 @@ var AuthorMenuElement = (function () {
               name = _evt$detail.name,
               value = _evt$detail.value;
 
-          if (name === 'multiple' && value && _this.hasAttribute('open')) {
-            _this.removeAttribute('open');
-          }
+          switch (name) {
+            case 'multiple':
+              value && _this.removeAttribute('open');
+              return;
 
-          if (name === 'open') {
-            if (!value) {
-              return _this.PRIVATE.removeOpenListeners();
-            }
+            case 'open':
+              if (_this.multiple) {
+                _this.optionsElement.unHoverAllOptions();
 
-            if (_this.multiple) {
-              return _this.removeAttribute('open');
-            }
+                return _this.removeAttribute('open');
+              }
 
-            _this.optionsElement.unHoverAllOptions();
+              if (value) {
+                if (!_this.hasAttribute('open')) {
+                  _this.setAttribute('open', '');
+                }
 
-            return _this.PRIVATE.addOpenListeners();
+                return _this.PRIVATE.addOpenListeners();
+              }
+
+              _this.PRIVATE.removeOpenListeners();
+
           }
         },
         throwSizeAttributeWarning: function throwSizeAttributeWarning() {
@@ -357,18 +375,17 @@ var AuthorMenuElement = (function () {
           }
 
           switch (attribute) {
+            case 'force-open':
+              return _this.emit('state.change', {
+                name: 'open',
+                value: true
+              });
+
             case 'open':
               return _this.emit('state.change', {
                 name: 'open',
-                value: _this.open
+                value: _this.hasAttribute('open') || _this.hasAttribute('force-open')
               });
-
-            case 'placeholder':
-              if (_this.selectedOptionsElement) {
-                _this.selectedOptionsElement.update();
-              }
-
-              break;
 
             case 'size':
               return _this.PRIVATE.throwSizeAttributeWarning();
@@ -407,6 +424,26 @@ var AuthorMenuElement = (function () {
         this.optionsElement.addOption(option, index);
       }
     }, {
+      key: "addFilter",
+      value: function addFilter(key, func) {
+        this.optionsElement.addFilter(key, func);
+      }
+    }, {
+      key: "hasFilter",
+      value: function hasFilter(key) {
+        return this.optionsElement.hasFilter(key);
+      }
+    }, {
+      key: "removeAllFilters",
+      value: function removeAllFilters() {
+        this.optionsElement.removeAllFilters();
+      }
+    }, {
+      key: "removeFilter",
+      value: function removeFilter() {
+        this.optionsElement.removeFilter(key);
+      }
+    }, {
       key: "checkValidity",
       value: function checkValidity() {
         return this.sourceElement.checkValidity();
@@ -424,11 +461,23 @@ var AuthorMenuElement = (function () {
     }, {
       key: "inject",
       value: function inject(sourceElement) {
+        var _this2 = this;
+
         var labels = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
         // Prevent re-injections
         if (this.PRIVATE.injected) {
           return;
+        }
+
+        this.PRIVATE.sourceForm = sourceElement.form;
+
+        if (this.PRIVATE.sourceForm !== null) {
+          this.UTIL.registerListeners(this.PRIVATE.sourceForm, {
+            reset: function reset(evt) {
+              return _this2.deselectAll();
+            }
+          });
         }
 
         this.UTIL.defineProperty('sourceElement', {
@@ -457,16 +506,6 @@ var AuthorMenuElement = (function () {
           }
 
           this.optionsElement.addOptions(sourceElement.children);
-
-          if (sourceElement.localName === 'select') {
-            var selectedOptionsElement = document.createElement('author-selected-options');
-            selectedOptionsElement.slot = 'selectedoptions';
-            this.appendChild(selectedOptionsElement);
-
-            if (!this.multiple) {
-              this.selectedOptionsElement.add(this.optionsElement.options[this.selectedIndex]);
-            }
-          }
         }
 
         this.PRIVATE.injected = true;
@@ -570,7 +609,7 @@ var AuthorMenuElement = (function () {
     }], [{
       key: "observedAttributes",
       get: function get() {
-        return ['autofocus', 'disabled', 'name', 'open', 'placeholder', 'tabindex', 'size'];
+        return ['autofocus', 'disabled', 'force-open', 'name', 'open', 'placeholder', 'tabindex', 'size'];
       }
     }]);
 

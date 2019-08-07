@@ -1,6 +1,6 @@
 // Copyright (c) 2019 Author.io. MIT licensed.
-// @author.io/element-menu v1.0.1 available at github.com/author-elements/menu
-// Last Build: 3/27/2019, 3:31:21 AM
+// @author.io/element-menu v1.0.18 available at github.com/author-elements/menu
+// Last Build: 4/10/2019, 9:48:39 PM
 var AuthorMenuElement = (function () {
   'use strict';
 
@@ -20,8 +20,14 @@ var AuthorMenuElement = (function () {
       super(templateString || `<template><style>@charset "UTF-8"; :host *,:host :after,:host :before{box-sizing:border-box}author-menu *,author-menu :after,author-menu :before{box-sizing:border-box}</style><slot></slot></template>`);
 
       this.UTIL.defineProperties({
+        sourceForm: {
+          private: true,
+          default: null
+        },
+
         form: {
-          readonly: true
+          readonly: true,
+          get: () => this.PRIVATE.sourceForm
         },
 
         hoveredIndex: {
@@ -75,6 +81,7 @@ var AuthorMenuElement = (function () {
         placeholder: '',
         autofocus: false,
         disabled: false,
+        'force-open': false,
         open: false,
         required: false,
 
@@ -111,6 +118,11 @@ var AuthorMenuElement = (function () {
               : -1;
 
           switch (evt[this.keySource]) {
+            case 27:
+            case 'Escape':
+              this.open = false;
+              return
+
             case 13:
             case 'Enter':
             case 32:
@@ -161,21 +173,22 @@ var AuthorMenuElement = (function () {
                 startIndex
               }, this.optionsElement)
 
-            default: return
+            case 9:
+            case 'Tab':
+              this.open = false;
+              break
           }
         },
 
         optionSelectionHandler: evt => {
           evt.stopPropagation();
-          let { afterChange } = this.PRIVATE.middleware;
+          // let { afterChange } = this.PRIVATE.middleware
 
           this.dispatchEvent(new Event('change', {}));
 
           if (this.open) {
             this.removeAttribute('open');
           }
-
-          this.emit('options.selected', evt.detail.options, this.selectedOptionsElement);
 
           // if (this.checkValidity()) {
           //   this.removeAttribute('invalid')
@@ -197,21 +210,26 @@ var AuthorMenuElement = (function () {
         stateChangeHandler: evt => {
           let { name, value } = evt.detail;
 
-          if (name === 'multiple' && value && this.hasAttribute('open')) {
-            this.removeAttribute('open');
-          }
+          switch (name) {
+            case 'multiple':
+              value && this.removeAttribute('open');
+              return
 
-          if (name === 'open') {
-            if (!value) {
-              return this.PRIVATE.removeOpenListeners()
-            }
+            case 'open':
+              if (this.multiple) {
+                this.optionsElement.unHoverAllOptions();
+                return this.removeAttribute('open')
+              }
 
-            if (this.multiple) {
-              return this.removeAttribute('open')
-            }
+              if (value) {
+                if (!this.hasAttribute('open')) {
+                  this.setAttribute('open', '');
+                }
 
-            this.optionsElement.unHoverAllOptions();
-            return this.PRIVATE.addOpenListeners()
+                return this.PRIVATE.addOpenListeners()
+              }
+
+              this.PRIVATE.removeOpenListeners();
           }
         },
 
@@ -233,21 +251,17 @@ var AuthorMenuElement = (function () {
           }
 
           switch (attribute) {
-            case 'open':
-              return this.emit('state.change', {
-                name: 'open',
-                value: this.open
-              })
+            case 'force-open': return this.emit('state.change', {
+              name: 'open',
+              value: true
+            })
 
-            case 'placeholder':
-              if (this.selectedOptionsElement) {
-                this.selectedOptionsElement.update();
-              }
+            case 'open': return this.emit('state.change', {
+              name: 'open',
+              value: this.hasAttribute('open') || this.hasAttribute('force-open')
+            })
 
-              break
-
-              case 'size':
-                return this.PRIVATE.throwSizeAttributeWarning()
+            case 'size': return this.PRIVATE.throwSizeAttributeWarning()
           }
         },
 
@@ -280,7 +294,7 @@ var AuthorMenuElement = (function () {
     }
 
     static get observedAttributes () {
-      return ['autofocus', 'disabled', 'name', 'open', 'placeholder', 'tabindex', 'size']
+      return ['autofocus', 'disabled', 'force-open', 'name', 'open', 'placeholder', 'tabindex', 'size']
     }
 
     get length () {
@@ -312,6 +326,22 @@ var AuthorMenuElement = (function () {
       this.optionsElement.addOption(option, index);
     }
 
+    addFilter (key, func) {
+      this.optionsElement.addFilter(key, func);
+    }
+
+    hasFilter (key) {
+      return this.optionsElement.hasFilter(key)
+    }
+
+    removeAllFilters () {
+      this.optionsElement.removeAllFilters();
+    }
+
+    removeFilter () {
+      this.optionsElement.removeFilter(key);
+    }
+
     checkValidity () {
       return this.sourceElement.checkValidity()
     }
@@ -328,6 +358,14 @@ var AuthorMenuElement = (function () {
       // Prevent re-injections
       if (this.PRIVATE.injected) {
         return
+      }
+
+      this.PRIVATE.sourceForm = sourceElement.form;
+
+      if (this.PRIVATE.sourceForm !== null) {
+        this.UTIL.registerListeners(this.PRIVATE.sourceForm, {
+          reset: evt => this.deselectAll()
+        });
       }
 
       this.UTIL.defineProperty('sourceElement', {
@@ -357,16 +395,6 @@ var AuthorMenuElement = (function () {
         }
 
         this.optionsElement.addOptions(sourceElement.children);
-
-        if (sourceElement.localName === 'select') {
-          let selectedOptionsElement = document.createElement('author-selected-options');
-          selectedOptionsElement.slot = 'selectedoptions';
-          this.appendChild(selectedOptionsElement);
-
-          if (!this.multiple) {
-            this.selectedOptionsElement.add(this.optionsElement.options[this.selectedIndex]);
-          }
-        }
       }
 
       this.PRIVATE.injected = true;

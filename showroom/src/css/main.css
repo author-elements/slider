@@ -3,15 +3,48 @@
 
 .author-slider.demo {
   & author-slider {
+    position: relative;
     padding: 0;
-    height: 1em;
-    width: 23.6em;
     background: black;
 
-    & .target {
-      height: .5em;
-      width: .5em;
+    & author-slider-handle {
+      position: absolute;
       background: red;
+    }
+  }
+
+  & .slider {
+    &.horizontal author-slider {
+      height: 1em;
+      width: 23.6em;
+
+      & author-slider-handle {
+        transform: translateX(-50%);
+        height: 100%;
+        width: .5em;
+      }
+    }
+
+    &.vertical author-slider {
+      height: 23.6em;
+      width: 1em;
+
+      & author-slider-handle {
+        transform: translateY(-50%);
+        height: .5em;
+        width: 100%;
+      }
+    }
+
+    &.omnidirectional author-slider {
+      height: 23.6em;
+      width: 23.6em;
+
+      & author-slider-handle {
+        transform: translate(-50%, -50%);
+        height: .5em;
+        width: .5em;
+      }
     }
   }
 

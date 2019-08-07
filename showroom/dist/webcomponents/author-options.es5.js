@@ -1,6 +1,6 @@
 // Copyright (c) 2019 Author.io. MIT licensed.
-// @author.io/element-options v1.0.5-beta.3 available at github.com/author-elements/options
-// Last Build: 3/21/2019, 4:53:37 AM
+// @author.io/element-options v1.1.3 available at github.com/author-elements/options
+// Last Build: 5/17/2019, 1:42:23 AM
 var AuthorOptionsElement = (function () {
   'use strict';
 
@@ -113,6 +113,23 @@ var AuthorOptionsElement = (function () {
       _this.UTIL.defineProperties({
         cherryPickedOptions: {
           private: true
+        },
+        filteredOptions: {
+          readonly: true,
+          get: function get() {
+            var _assertThisInitialize = _assertThisInitialized(_this),
+                options = _assertThisInitialize.options;
+
+            for (var filter in _this.PRIVATE.filters) {
+              options = _this.PRIVATE.filters[filter]();
+            }
+
+            return Array.isArray(options) ? options : [];
+          }
+        },
+        filters: {
+          private: true,
+          default: {}
         },
         form: {
           readonly: true,
@@ -256,6 +273,14 @@ var AuthorOptionsElement = (function () {
         },
         selectionStartIndex: {
           private: true
+        },
+        visibleOptions: {
+          readonly: true,
+          get: function get() {
+            return _this.options.filter(function (option) {
+              return !option.hidden;
+            });
+          }
         }
       });
 
@@ -269,7 +294,7 @@ var AuthorOptionsElement = (function () {
                 return;
 
               default:
-                return _this.hoverOption(startIndex + 1);
+                return _this.PRIVATE.hoverNextOption(startIndex);
             }
 
             return;
@@ -299,7 +324,7 @@ var AuthorOptionsElement = (function () {
                 return;
 
               default:
-                return _this.hoverOption(startIndex - 1);
+                return _this.PRIVATE.hoverPreviousOption(startIndex);
             }
 
             return;
@@ -445,6 +470,17 @@ var AuthorOptionsElement = (function () {
                     selected: sourceElement.selected,
                     value: sourceElement.hasAttribute('value') ? sourceElement.getAttribute('value').trim() : null,
                     text: sourceElement.text.trim()
+                  },
+                  setAttr: function setAttr(name, value) {
+                    _this3.sourceElement[name] = value;
+
+                    if (typeof value === 'boolean') {
+                      value ? _this3.displayElement.setAttribute(name, '') : _this3.displayElement.removeAttribute(name);
+                    } else {
+                      _this3.displayElement.setAttribute(name, value);
+                    }
+
+                    _p.get(_this3).attributes[name] = value;
                   }
                 });
               }
@@ -456,25 +492,20 @@ var AuthorOptionsElement = (function () {
                   this.displayElement.remove();
                 }
               }, {
-                key: "setAttr",
-                value: function setAttr(name, value) {
-                  this.sourceElement[name] = value;
-
-                  if (typeof value === 'boolean') {
-                    value ? this.displayElement.setAttribute(name, '') : this.displayElement.removeAttribute(name);
-                  } else {
-                    this.displayElement.setAttribute(name, value);
-                  }
-
-                  _p.get(this).attributes[name] = value;
-                }
-              }, {
                 key: "disabled",
                 get: function get() {
                   return _p.get(this).attributes.disabled;
                 },
                 set: function set(bool) {
-                  this.setAttr('disabled', bool);
+                  _p.get(this).setAttr('disabled', bool);
+                }
+              }, {
+                key: "hidden",
+                get: function get() {
+                  return this.displayElement.hidden;
+                },
+                set: function set(bool) {
+                  this.displayElement.hidden = bool;
                 }
               }, {
                 key: "index",
@@ -487,7 +518,7 @@ var AuthorOptionsElement = (function () {
                   return _p.get(this).attributes.id;
                 },
                 set: function set(id) {
-                  this.setAttr('id', id);
+                  _p.get(this).setAttr('id', id);
                 }
               }, {
                 key: "selected",
@@ -495,7 +526,7 @@ var AuthorOptionsElement = (function () {
                   return _p.get(this).attributes.selected;
                 },
                 set: function set(bool) {
-                  this.setAttr('selected', bool);
+                  _p.get(this).setAttr('selected', bool);
                 }
               }, {
                 key: "label",
@@ -503,7 +534,7 @@ var AuthorOptionsElement = (function () {
                   return _p.get(this).attributes.label;
                 },
                 set: function set(label) {
-                  this.setAttr('label', label);
+                  _p.get(this).setAttr('label', label);
                 }
               }, {
                 key: "text",
@@ -511,7 +542,7 @@ var AuthorOptionsElement = (function () {
                   return _p.get(this).attributes.text;
                 },
                 set: function set(text) {
-                  this.setAttr('text', text);
+                  _p.get(this).setAttr('text', text);
                 }
               }, {
                 key: "value",
@@ -519,7 +550,7 @@ var AuthorOptionsElement = (function () {
                   return _p.get(this).attributes.value;
                 },
                 set: function set(value) {
-                  this.setAttr('value', value);
+                  _p.get(this).setAttr('value', value);
                 }
               }]);
 
@@ -531,6 +562,34 @@ var AuthorOptionsElement = (function () {
           return _this.options.filter(function (option) {
             return option.selected;
           });
+        },
+        getPreviousVisibleOption: function getPreviousVisibleOption(startIndex) {
+          var index = startIndex - 1;
+          var option = _this.options[index];
+
+          if (!option) {
+            return null;
+          }
+
+          if (option.hidden) {
+            option = _this.PRIVATE.getPreviousVisibleOption(index);
+          }
+
+          return option;
+        },
+        getNextVisibleOption: function getNextVisibleOption(startIndex) {
+          var index = startIndex + 1;
+          var option = _this.options[index];
+
+          if (!option) {
+            return null;
+          }
+
+          if (option.hidden) {
+            option = _this.PRIVATE.getNextVisibleOption(index);
+          }
+
+          return option;
         },
         handleClickSelection: function handleClickSelection(detail, cb) {
           var _this$PRIVATE = _this.PRIVATE,
@@ -614,6 +673,24 @@ var AuthorOptionsElement = (function () {
             return cb(selection);
           }
         },
+        hoverPreviousOption: function hoverPreviousOption(startIndex) {
+          var option = _this.PRIVATE.getPreviousVisibleOption(startIndex);
+
+          if (!option || option.index === startIndex) {
+            return;
+          }
+
+          _this.hoverOption(option.index);
+        },
+        hoverNextOption: function hoverNextOption(startIndex) {
+          var option = _this.PRIVATE.getNextVisibleOption(startIndex);
+
+          if (!option || option.index === startIndex) {
+            return;
+          }
+
+          _this.hoverOption(option.index);
+        },
         optionSelectionHandler: function optionSelectionHandler(evt) {
           var _this$PRIVATE3 = _this.PRIVATE,
               cherryPickedOptions = _this$PRIVATE3.cherryPickedOptions,
@@ -633,6 +710,10 @@ var AuthorOptionsElement = (function () {
               keyboard = _evt$detail.keyboard;
 
           var completeOperation = function completeOperation(selection) {
+            if (!selection) {
+              return _this.emit('cleared');
+            }
+
             var currentSelection = getCurrentSelection();
             var comparator = selection.length >= currentSelection.length ? selection.options : currentSelection;
             var diff = diffSelections(comparator, comparator === currentSelection ? selection.options : currentSelection);
@@ -641,29 +722,38 @@ var AuthorOptionsElement = (function () {
               return;
             }
 
-            var beforeChange = _this.parentNode.beforeChange;
-            var detail = {
+            _this.deselectAll();
+
+            selection.selectAll();
+
+            _this.emit('options.selected', {
               options: selection.options,
               previous: _this.selectedOptions,
               next: new (generateAuthorHTMLCollectionConstructor())(selection.displayElements)
-            };
+            }, _this.parentNode); // let { beforeChange } = this.parentNode
+            //
+            // let detail = {
+            //   options: selection.options,
+            //   previous: this.selectedOptions,
+            //   next: new (generateAuthorHTMLCollectionConstructor())(selection.displayElements)
+            // }
+            //
+            // let cb = () => {
+            //   this.deselectAll()
+            //   selection.selectAll()
+            //   return this.emit('options.selected', detail, this.parentNode)
+            // }
+            //
+            // if (!(beforeChange && typeof beforeChange === 'function')) {
+            //   return cb()
+            // }
+            //
+            // beforeChange(this.selectedOptions, detail.next, cb)
 
-            var cb = function cb() {
-              _this.deselectAll();
-
-              selection.selectAll();
-              return _this.emit('options.selected', detail, _this.parentNode);
-            };
-
-            if (!(beforeChange && typeof beforeChange === 'function')) {
-              return cb();
-            }
-
-            beforeChange(_this.selectedOptions, detail.next, cb);
           };
 
           if (!_this.multiple) {
-            return completeOperation(new Selection([_this.options[index]]));
+            return completeOperation(_this.options[index] ? new Selection([_this.options[index]]) : null);
           }
 
           if (keyboard) {
@@ -719,8 +809,52 @@ var AuthorOptionsElement = (function () {
 
       return _this;
     }
+    /**
+     * @property {number} selectedIndex
+     * Represents the index of the first currently-selected option.
+     * If no option is selected, will return -1.
+     */
+
 
     _createClass(AuthorOptionsElement, [{
+      key: "addFilter",
+      value: function addFilter() {
+        var key = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.UTIL.generateGuid('filter_');
+        var func = arguments.length > 1 ? arguments[1] : undefined;
+
+        if (typeof func !== 'function') {
+          this.UTIL.throwError({
+            type: 'type',
+            message: "Filter must be a function"
+          });
+        }
+
+        if (this.PRIVATE.filters.hasOwnProperty(key)) {
+          console.warn("Filter \"".concat(key, "\" alredy exists! Overwriting..."));
+        }
+
+        this.PRIVATE.filters[key] = func;
+      }
+    }, {
+      key: "hasFilter",
+      value: function hasFilter(filter) {
+        return this.PRIVATE.filters.hasOwnProperty(filter);
+      }
+    }, {
+      key: "removeFilter",
+      value: function removeFilter(key) {
+        if (!this.PRIVATE.filters.hasOwnProperty(key)) {
+          return console.warn("Filter \"".concat(key, "\" not found."));
+        }
+
+        delete this.PRIVATE.filters[key];
+      }
+    }, {
+      key: "removeAllFilters",
+      value: function removeAllFilters() {
+        this.PRIVATE.filters = {};
+      }
+    }, {
       key: "addOptgroup",
       value: function addOptgroup(optgroup) {
         var label = document.createElement('author-optgroup-label');
@@ -797,8 +931,11 @@ var AuthorOptionsElement = (function () {
     }, {
       key: "clear",
       value: function clear() {
-        while (this.lastChild) {
-          this.removeChild(this.lastChild);
+        this.selectedIndex = -1;
+        this.innerHTML = '';
+
+        while (this.options.length) {
+          this.options.pop();
         }
       }
     }, {
@@ -812,7 +949,7 @@ var AuthorOptionsElement = (function () {
 
         option.selected = false;
 
-        if (this.PRIVATE.isSlave) {
+        if (this.PRIVATE.isSlave && this.selectedOptionsElement !== undefined) {
           this.parentNode.selectedOptionsElement.remove(option, updateList);
         }
       }
@@ -827,6 +964,18 @@ var AuthorOptionsElement = (function () {
         }).forEach(function (option, index, options) {
           _this5.deselect(option, index = options.length - 1 && showPlaceholder);
         });
+      }
+    }, {
+      key: "find",
+      value: function find(query) {
+        var caseSensitive = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+        var results = Array.from(this.options).filter(function (option) {
+          var value = caseSensitive ? option.value : option.value.toLowerCase();
+          var text = caseSensitive ? option.text : option.text.toLowerCase();
+          query = caseSensitive ? query : query.toLowerCase();
+          return value.indexOf(query) >= 0 || text.indexOf(query) >= 0;
+        });
+        return Array.isArray(results) ? results : [];
       }
     }, {
       key: "hoverOption",
@@ -893,17 +1042,6 @@ var AuthorOptionsElement = (function () {
       set: function set(index) {
         this.emit('option.selected', {
           index: index
-        });
-      }
-    }, {
-      key: "selectionStartIndex",
-      get: function get() {
-        return this.PRIVATE.selectionStartIndex;
-      },
-      set: function set(value) {
-        this.UTIL.throwError({
-          type: 'readonly',
-          message: "\"selectionStartIndex\" cannot be set manually."
         });
       }
     }]);

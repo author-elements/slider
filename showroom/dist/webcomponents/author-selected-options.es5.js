@@ -1,6 +1,6 @@
 // Copyright (c) 2019 Author.io. MIT licensed.
-// @author.io/element-selected-options v1.0.1 available at github.com/author-elements/selected-options
-// Last Build: 3/9/2019, 11:16:16 PM
+// @author.io/element-selected-options v1.0.2 available at github.com/author-elements/selected-options
+// Last Build: 5/16/2019, 11:04:08 PM
 var AuthorSelectedOptionsElement = (function () {
   'use strict';
 
@@ -12,15 +12,9 @@ var AuthorSelectedOptionsElement = (function () {
               function AuthorSelectedOptionsElement () {
       var this$1 = this;
 
-      superclass.call(this, "<template><style>@charset \"UTF-8\"; :host{contain:content;display:flex;max-width:100%}:host *,:host :after,:host :before{box-sizing:border-box}author-selected-options{contain:content;display:flex;max-width:100%}author-selected-options *,author-selected-options :after,author-selected-options :before{box-sizing:border-box}</style><slot name=\"afterbegin\"></slot><slot name=\"beforecontents\"></slot><div class=\"contents\"><slot id=\"contents\"></slot></div><slot name=\"aftercontents\"></slot><div class=\"beforeend\"><slot name=\"beforeend\"></slot></div></template>");
+      superclass.call(this, "<template><style>@charset \"UTF-8\"; :host{contain:content;display:flex;max-width:100%}:host *,:host :after,:host :before{box-sizing:border-box}author-selected-options{contain:content;display:flex;max-width:100%}author-selected-options *,author-selected-options :after,author-selected-options :before{box-sizing:border-box}</style><slot></slot></template>");
 
       this.UTIL.defineProperties({
-        contentsElement: {
-          readonly: true,
-          private: true,
-          default: this.shadowRoot.getElementById('contents')
-        },
-
         options: {
           private: true,
           default: []
@@ -29,26 +23,28 @@ var AuthorSelectedOptionsElement = (function () {
 
       this.UTIL.definePrivateMethods({
         appendCaret: function () {
-          var xmlns = 'http://www.w3.org/2000/svg';
-          var width = 24;
-          var height = 24;
+          // let xmlns = 'http://www.w3.org/2000/svg'
+          // let width = 24
+          // let height = 24
+          //
+          // let caret = document.createElementNS(xmlns, 'svg')
+          // caret.slot = 'beforeend'
+          // caret.setAttributeNS(null, 'width', width)
+          // caret.setAttributeNS(null, 'height', height)
+          // caret.setAttributeNS(null, 'viewBox', `0 0 ${width} ${height}`)
+          // caret.setAttributeNS(null, 'fill', 'none')
+          // caret.setAttributeNS(null, 'stroke', 'currentColor')
+          // caret.setAttributeNS(null, 'stroke-width', '3')
+          // caret.setAttributeNS(null, 'stroke-linecap', 'square')
+          // caret.setAttributeNS(null, 'stroke-linejoin', 'miter')
+          //
+          // let shape = document.createElementNS(xmlns, 'polyline')
+          // shape.setAttributeNS(null, 'points', '6 9 12 15 18 9')
+          //
+          // caret.appendChild(shape)
+          // this.appendChild(caret)
 
-          var caret = document.createElementNS(xmlns, 'svg');
-          caret.slot = 'beforeend';
-          caret.setAttributeNS(null, 'width', width);
-          caret.setAttributeNS(null, 'height', height);
-          caret.setAttributeNS(null, 'viewBox', ("0 0 " + width + " " + height));
-          caret.setAttributeNS(null, 'fill', 'none');
-          caret.setAttributeNS(null, 'stroke', 'currentColor');
-          caret.setAttributeNS(null, 'stroke-width', '3');
-          caret.setAttributeNS(null, 'stroke-linecap', 'square');
-          caret.setAttributeNS(null, 'stroke-linejoin', 'miter');
-
-          var shape = document.createElementNS(xmlns, 'polyline');
-          shape.setAttributeNS(null, 'points', '6 9 12 15 18 9');
-
-          caret.appendChild(shape);
-          this$1.appendChild(caret);
+          // this.insertAdjacentHTML('beforeend', `<svg slot="beforeend" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter"><polyline points="6 9 12 15 18 9"></polyline></svg>`)
         },
 
         optionSelectionHandler: function (evt) {
@@ -80,7 +76,7 @@ var AuthorSelectedOptionsElement = (function () {
 
       this.UTIL.registerListeners(this, {
         connected: function () {
-          this$1.PRIVATE.appendCaret();
+          // this.PRIVATE.appendCaret()
           this$1.update();
           this$1.parentNode.on('state.change', this$1.PRIVATE.parentStateChangeHandler);
         },
@@ -132,7 +128,7 @@ var AuthorSelectedOptionsElement = (function () {
         this.PRIVATE.options = options;
       }
 
-      this.PRIVATE.contentsElement.innerHTML = options.length > 0
+      this.innerHTML = options.length > 0
         ? this.list
         : this.parentNode.placeholder || '';
     };

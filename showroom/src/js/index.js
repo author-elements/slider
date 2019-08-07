@@ -3,22 +3,23 @@ const Demo = new NGNX.VIEW.Registry({
   namespace: 'demo.',
 
   references: {
-    slider: 'author-slider'
+    slider: 'author-slider',
+    handle: 'author-slider-handle'
   },
 
   init () {
-    let slider = this.ref.slider.element
-    window.slider = slider
+    let { slider, handle } = this.ref
+    window.slider = slider.element
 
     slider.on('slide', evt => {
       console.log(`SLIDE`)
-      console.log(`POSITION: ${evt.detail.x.pct * 100}%`)
+      console.log(`POSITION:`, evt.detail)
     })
 
     slider.on('change', evt => {
       console.log(`CHANGE`)
-      console.log(`PREVIOUS: ${evt.detail.previous.x.pct * 100}%`)
-      console.log(`NEW:      ${evt.detail.position.x.pct * 100}%`)
+      console.log(`PREVIOUS:`, evt.detail.previous)
+      console.log('NEW:', evt.detail.position)
     })
   }
 })
